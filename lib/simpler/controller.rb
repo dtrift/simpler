@@ -15,6 +15,7 @@ module Simpler
       @request.env['simpler.controller'] = self
       @request.env['simpler.action'] = action
 
+      get_id
       set_default_headers
       send(action)
       write_response
@@ -23,6 +24,11 @@ module Simpler
     end
 
     private
+
+    def get_id
+      id = @request.env['PATH_INFO'].split('/').last.to_i
+      @request.params[:id] = id unless id.nil?
+    end
 
     def extract_name
       self.class.name.match('(?<name>.+)Controller')[:name].downcase
