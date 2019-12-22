@@ -17,6 +17,7 @@ module Simpler
           @method == method && path.match(path_split[1]) && @path.match(':id')
         else
           @method == method && path.match(@path)
+        end
       end
 
     end
