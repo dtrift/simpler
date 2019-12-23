@@ -28,14 +28,13 @@ module Simpler
 
     def call(env)
       route = @router.route_for(env)
-      if route
-        controller = route.controller.new(env)
-        action = route.action
+      return url_not_found unless route
+      
+      env['simpler.params'] = route.params(env)
+      controller = route.controller.new(env)
+      action = route.action
 
-        make_response(controller, action)
-      else
-        url_not_found
-      end
+      make_response(controller, action)
     end
 
     private

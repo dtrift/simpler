@@ -4,18 +4,19 @@ module Simpler
   class Controller
 
     attr_reader :name, :request, :response
+    attr_accessor :headers
 
     def initialize(env)
       @name = extract_name
       @request = Rack::Request.new(env)
       @response = Rack::Response.new
+      @headers  = @response.headers
     end
 
     def make_response(action)
       @request.env['simpler.controller'] = self
       @request.env['simpler.action'] = action
 
-      get_id
       set_default_headers
       send(action)
       write_response
@@ -25,9 +26,8 @@ module Simpler
 
     private
 
-    def get_id
-      id = @request.env['PATH_INFO'].split('/').last.to_i
-      @request.params[:id] = id unless id.nil?
+    def status(value)
+      @response.status = value
     end
 
     def extract_name
@@ -35,7 +35,15 @@ module Simpler
     end
 
     def set_default_headers
-      @response['Content-Type'] = 'text/html'
+      headers['Content-Type'] = plain_exists? ? 'text/plain' : 'text/html'
+    end
+
+    def plain_exists?
+      template = @request.env['simpler.template']
+
+      types = %i[plain inline text body]
+
+      template.is_a?(Hash) && template.any? { |type| types.include?(type) }
     end
 
     def write_response
@@ -49,7 +57,7 @@ module Simpler
     end
 
     def params
-      @request.params
+      @request.params.merge(route.make_params(env['PATH_INFO']))
     end
 
     def render(template)

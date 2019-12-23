@@ -12,12 +12,31 @@ module Simpler
       end
 
       def match?(method, path)
-        path_split = path.split('/')
-        if path_split.last.to_i > 0
-          @method == method && path.match(path_split[1]) && @path.match(':id')
-        else
-          @method == method && path.match(@path)
+        @method == method && path.match(@path)
+      end
+
+      def params(env)
+        request = Rack::Request.new(env)
+      end
+
+      private
+
+      def make_params(env_info)
+        path = extract_params(@path)
+        requests = extract_params(env_info)
+        result = {}
+
+        path.zip(requests) do |key, value|
+          key = key.delete(':').to_sym
+          result[key] = value
         end
+        result
+      end
+
+      def extract_params(path_split)
+        path_split = path_split.split('/')
+        path_split.delete_at(0)
+        path_split
       end
 
     end
